@@ -76,6 +76,7 @@ public sealed class BankAccountService : IBankAccountService
     }
 
     public async Task<TransferResult> TransferAsync(
+       Guid currentUserId,
        Guid fromAccountId,
        Guid toAccountId,
        decimal amount,
@@ -83,6 +84,22 @@ public sealed class BankAccountService : IBankAccountService
        CancellationToken cancellationToken
    )
     {
+        bool ownsSourceAccount =
+           await _dbContext.BankAccounts
+               .AsNoTracking()
+               .AnyAsync(
+                   account =>
+                       account.Id == fromAccountId &&
+                       account.UserId == currentUserId,
+                   cancellationToken
+               );
+
+        if (!ownsSourceAccount)
+        {
+            throw new ForbiddenException(
+                "You do not have permission to use this account."
+            );
+        }
         if (amount <= 0)
         {
             throw new ArgumentException(
@@ -358,9 +375,9 @@ public sealed class BankAccountService : IBankAccountService
 
             _dbContext.Transfers.Add(transfer);
             _dbContext.BankTransactions.AddRange(
-       debitTransaction,
-       creditTransaction
-   );
+                debitTransaction,
+                creditTransaction
+            );
 
             await _dbContext.SaveChangesAsync(
                 cancellationToken

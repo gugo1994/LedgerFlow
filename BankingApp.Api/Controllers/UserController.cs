@@ -6,6 +6,7 @@ using BankingApp.Api.DTOs;
 using BankingApp.Api.Entities;
 using BankingApp.Api.Mappings;
 using BankingApp.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Controllers;
@@ -16,13 +17,15 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IAuthService authService)
     {
         _userService = userService;
     }
+
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<List<UserResponse>>> GetUsers(
-    CancellationToken cancellationToken
+   CancellationToken cancellationToken
 )
     {
         List<UserResponse> users =
@@ -33,10 +36,12 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<UserResponse>> GetUser(
-    Guid id,
-    CancellationToken cancellationToken
+   Guid id,
+   CancellationToken cancellationToken
 )
     {
         User? user = await _userService.GetByIdAsync(
@@ -52,26 +57,12 @@ public class UsersController : ControllerBase
         return Ok(user.ToResponse());
     }
 
-    [HttpPost]
-    public async Task<ActionResult<UserResponse>> CreateUser(
-        CreateUserRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        User user = await _userService.CreateAsync(
-            request.Email,
-            request.FullName,
-            cancellationToken
-        );
-
-        return Ok(user.ToResponse());
-    }
-
+    [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UserResponse>> UpdateUser(
-    Guid id,
-    UpdateUserRequest request,
-    CancellationToken cancellationToken
+   Guid id,
+   UpdateUserRequest request,
+   CancellationToken cancellationToken
 )
     {
         User? user = await _userService.UpdateAsync(
@@ -89,6 +80,7 @@ public class UsersController : ControllerBase
         return Ok(user.ToResponse());
     }
 
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(
         Guid id,

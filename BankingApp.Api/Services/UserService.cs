@@ -19,29 +19,6 @@ public sealed class UserService : IUserService
         _dbContext = dbContext;
     }
 
-    public async Task<User> CreateAsync(
-        string email,
-        string fullName,
-        CancellationToken cancellationToken
-    )
-    {
-        User user = new()
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            FullName = fullName,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.Users.Add(user);
-
-        await _dbContext.SaveChangesAsync(
-            cancellationToken
-        );
-
-        return user;
-    }
-
     public async Task<User?> GetByIdAsync(
     Guid id,
     CancellationToken cancellationToken

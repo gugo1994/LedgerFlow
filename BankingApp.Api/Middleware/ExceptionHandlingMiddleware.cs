@@ -71,6 +71,14 @@ public sealed class ExceptionHandlingMiddleware
                 exception.Message
             );
         }
+        catch (ForbiddenException exception)
+        {
+            await WriteErrorAsync(
+                context,
+                HttpStatusCode.Forbidden,
+                exception.Message
+            );
+        }
         catch (Exception exception)
         {
             _logger.LogError(

@@ -9,12 +9,6 @@ namespace BankingApp.Api.Services;
 
 public interface IUserService
 {
-    Task<User> CreateAsync(
-        string email,
-        string fullName,
-        CancellationToken cancellationToken
-    );
-
     Task<User?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken

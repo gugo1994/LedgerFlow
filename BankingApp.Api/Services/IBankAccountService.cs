@@ -20,6 +20,7 @@ public interface IBankAccountService
     );
 
     Task<TransferResult> TransferAsync(
+        Guid currentUserId,
         Guid fromAccountId,
         Guid toAccountId,
         decimal amount,

@@ -1,10 +1,13 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Api.DTOs;
 using BankingApp.Api.Entities;
 using BankingApp.Api.Mappings;
 using BankingApp.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Controllers;
@@ -22,6 +25,7 @@ public sealed class BankAccountsController : ControllerBase
         _bankAccountService = bankAccountService;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<BankAccountResponse>> Create(
         CreateBankAccountRequest request,
@@ -44,7 +48,7 @@ public sealed class BankAccountsController : ControllerBase
 
         return Ok(account.ToResponse());
     }
-
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<BankAccountResponse>> GetById(
     Guid id,
@@ -65,16 +69,21 @@ public sealed class BankAccountsController : ControllerBase
         return Ok(account.ToResponse());
     }
 
-    [HttpPost("{id:guid}/transfer")]
+    [Authorize]
+    [HttpPost("{fromAccountId:guid}/transfer")]
     public async Task<IActionResult> Transfer(
-        Guid id,
+        Guid fromAccountId,
         TransferRequest request,
         [FromHeader(Name = "Idempotency-Key")] string idempotencyKey,
         CancellationToken cancellationToken
     )
     {
+        Guid currentUserId =
+       GetCurrentUserId();
+
         TransferResult result = await _bankAccountService.TransferAsync(
-            id,
+            currentUserId,
+            fromAccountId,
             request.ToAccountId,
             request.Amount,
             idempotencyKey,
@@ -90,5 +99,24 @@ public sealed class BankAccountsController : ControllerBase
               isReplay = result.IsReplay
           }
       );
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        string? userIdValue =
+            User.FindFirstValue(
+                JwtRegisteredClaimNames.Sub
+            );
+        if (
+            userIdValue is null ||
+            !Guid.TryParse(userIdValue, out Guid userId)
+        )
+        {
+            throw new UnauthorizedAccessException(
+                "Invalid user identity."
+            );
+        }
+
+        return userId;
     }
 }
