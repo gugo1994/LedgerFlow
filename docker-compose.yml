@@ -43,6 +43,11 @@ services:
         Username=${POSTGRES_USER};
         Password=${POSTGRES_PASSWORD}
 
+        
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+
     ports:
       - "8080:8080"
 
