@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using System.Text;
 using BankingApp.Api.Data;
 using BankingApp.Api.Entities;
@@ -77,7 +78,8 @@ builder.Services
             IssuerSigningKey =
                 new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(jwtSecret)
-                )
+                ),
+            RoleClaimType = ClaimTypes.Role
         };
 });
 

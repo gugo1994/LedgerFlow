@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using BankingApp.Api.Constants;
 using BankingApp.Api.DTOs;
 using BankingApp.Api.Entities;
 using BankingApp.Api.Mappings;
@@ -22,11 +23,11 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    [Authorize]
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpGet]
     public async Task<ActionResult<List<UserResponse>>> GetUsers(
-   CancellationToken cancellationToken
-)
+    CancellationToken cancellationToken
+ )
     {
         List<UserResponse> users =
             await _userService.GetAllAsync(

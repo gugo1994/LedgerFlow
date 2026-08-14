@@ -50,7 +50,12 @@ public sealed class JwtTokenService(
             new Claim(
                 "full_name",
                 user.FullName
-            )
+            ),
+
+            new Claim(
+    ClaimTypes.Role,
+    user.Role
+)
         ];
 
         SymmetricSecurityKey key =

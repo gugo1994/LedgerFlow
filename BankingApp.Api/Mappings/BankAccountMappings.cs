@@ -19,6 +19,7 @@ public static class BankAccountMappings
                 account.User.Id,
                 account.User.Email,
                 account.User.FullName,
+                account.User.Role,
                 account.User.CreatedAt
             )
         );

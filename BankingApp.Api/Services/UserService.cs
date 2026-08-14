@@ -41,6 +41,7 @@ public sealed class UserService : IUserService
                 user.Id,
                 user.Email,
                 user.FullName,
+                user.Role,
                 user.CreatedAt
             ))
             .ToListAsync(cancellationToken);
