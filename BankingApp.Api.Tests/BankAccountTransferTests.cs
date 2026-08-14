@@ -2,10 +2,12 @@ using BankingApp.Api.Constants;
 using BankingApp.Api.Data;
 using BankingApp.Api.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Xunit;
@@ -92,6 +94,22 @@ public sealed class BankAccountTransferTests
 
         request1.Content =
             JsonContent.Create(requestBody);
+            IConfiguration configuration =
+    _factory.Services.GetRequiredService<IConfiguration>();
+
+string token = TestAuthHelper.CreateToken(
+    userId,
+    UserRoles.Customer,
+    configuration["Jwt:Secret"]!,
+    configuration["Jwt:Issuer"]!,
+    configuration["Jwt:Audience"]!
+);
+
+_client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue(
+        "Bearer",
+        token
+    );
 
         HttpRequestMessage request2 = new(
             HttpMethod.Post,
@@ -202,6 +220,22 @@ public sealed class BankAccountTransferTests
 
         string idempotencyKey =
             Guid.NewGuid().ToString();
+            IConfiguration configuration =
+    _factory.Services.GetRequiredService<IConfiguration>();
+
+string token = TestAuthHelper.CreateToken(
+    userId,
+    UserRoles.Customer,
+    configuration["Jwt:Secret"]!,
+    configuration["Jwt:Issuer"]!,
+    configuration["Jwt:Audience"]!
+);
+
+_client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue(
+        "Bearer",
+        token
+    );
 
         HttpRequestMessage firstRequest = new(
             HttpMethod.Post,

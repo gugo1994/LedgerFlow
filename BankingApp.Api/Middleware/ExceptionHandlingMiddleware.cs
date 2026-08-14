@@ -79,6 +79,22 @@ public sealed class ExceptionHandlingMiddleware
                 exception.Message
             );
         }
+        catch (AccountFrozenException exception)
+        {
+            await WriteErrorAsync(
+                context,
+                HttpStatusCode.Conflict,
+                exception.Message
+            );
+        }
+        catch (NotFoundException exception)
+        {
+            await WriteErrorAsync(
+                context,
+                HttpStatusCode.NotFound,
+                exception.Message
+            );
+        }
         catch (Exception exception)
         {
             _logger.LogError(

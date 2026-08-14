@@ -10,6 +10,8 @@ public class BankAccount
 
     public decimal Balance { get; set; }
 
+    public bool Frozen { get; set; } = false;
+
     public Guid UserId { get; set; }
 
     public User User { get; set; } = null!;

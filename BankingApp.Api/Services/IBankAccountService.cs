@@ -27,4 +27,9 @@ public interface IBankAccountService
         string idempotencyKey,
         CancellationToken cancellationToken
     );
+
+    Task FreezeAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken
+    );
 }

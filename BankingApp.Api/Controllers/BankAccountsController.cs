@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using BankingApp.Api.Constants;
 using BankingApp.Api.DTOs;
 using BankingApp.Api.Entities;
 using BankingApp.Api.Mappings;
@@ -69,6 +70,22 @@ public sealed class BankAccountsController : ControllerBase
         return Ok(account.ToResponse());
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
+    [HttpPatch("{id:guid}/freeze")]
+    public async Task<ActionResult> Freeze(
+   Guid id,
+   CancellationToken cancellationToken
+)
+    {
+        await _bankAccountService.FreezeAccountAsync(
+            id,
+            cancellationToken
+        );
+
+        return Ok(new { message = "Account frozen successfully." });
+
+    }
+
     [Authorize]
     [HttpPost("{fromAccountId:guid}/transfer")]
     public async Task<IActionResult> Transfer(
@@ -119,4 +136,6 @@ public sealed class BankAccountsController : ControllerBase
 
         return userId;
     }
+
+
 }

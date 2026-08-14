@@ -85,19 +85,19 @@ public sealed class BankAccountService : IBankAccountService
    )
     {
         bool ownsSourceAccount =
-           await _dbContext.BankAccounts
-               .AsNoTracking()
-               .AnyAsync(
-                   account =>
-                       account.Id == fromAccountId &&
-                       account.UserId == currentUserId,
-                   cancellationToken
-               );
+            await _dbContext.BankAccounts
+                .AsNoTracking()
+                .AnyAsync(
+                    account =>
+                        account.Id == fromAccountId &&
+                        account.UserId == currentUserId,
+                    cancellationToken
+                );
 
         if (!ownsSourceAccount)
         {
             throw new ForbiddenException(
-                "You do not have permission to use this account."
+                "User does not own the source account."
             );
         }
         if (amount <= 0)
@@ -131,6 +131,31 @@ public sealed class BankAccountService : IBankAccountService
                 toAccountId,
                 amount
             ),
+            cancellationToken
+        );
+    }
+
+    public async Task FreezeAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken
+    )
+    {
+        BankAccount? account = await _dbContext.BankAccounts
+            .FirstOrDefaultAsync(
+                account => account.Id == accountId,
+                cancellationToken
+            );
+
+        if (account is null)
+        {
+            throw new NotFoundException(
+                "Account not found."
+            );
+        }
+
+        account.Frozen = true;
+
+        await _dbContext.SaveChangesAsync(
             cancellationToken
         );
     }
@@ -316,6 +341,7 @@ public sealed class BankAccountService : IBankAccountService
                     account => account.Id == fromAccountId
                 );
 
+
             BankAccount? toAccount =
                 accounts.FirstOrDefault(
                     account => account.Id == toAccountId
@@ -334,7 +360,12 @@ public sealed class BankAccountService : IBankAccountService
                     ResponseBody: "One or both accounts not found."
                 );
             }
-
+            if (fromAccount.Frozen)
+            {
+                throw new AccountFrozenException(
+                    "Source account is frozen."
+                );
+            }
             if (fromAccount.Balance < amount)
             {
                 throw new InsufficientFundsException();
