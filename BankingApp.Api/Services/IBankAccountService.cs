@@ -32,4 +32,10 @@ public interface IBankAccountService
         Guid accountId,
         CancellationToken cancellationToken
     );
+
+    Task UnfreezeAccountAsync(
+        Guid accountId,
+        string idempotencyKey,
+        CancellationToken cancellationToken
+    );
 }

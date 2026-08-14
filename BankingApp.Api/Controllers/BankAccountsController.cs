@@ -86,6 +86,24 @@ public sealed class BankAccountsController : ControllerBase
 
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
+    [HttpPatch("{id:guid}/unfreeze")]
+    public async Task<ActionResult> UnFreeze(
+   Guid id,
+           [FromHeader(Name = "Idempotency-Key")] string idempotencyKey,
+   CancellationToken cancellationToken
+)
+    {
+        await _bankAccountService.UnfreezeAccountAsync(
+            id,
+            idempotencyKey,
+            cancellationToken
+        );
+
+        return Ok(new { message = "Account unfrozen successfully." });
+
+    }
+
     [Authorize]
     [HttpPost("{fromAccountId:guid}/transfer")]
     public async Task<IActionResult> Transfer(

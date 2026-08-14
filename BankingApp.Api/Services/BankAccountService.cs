@@ -160,6 +160,146 @@ public sealed class BankAccountService : IBankAccountService
         );
     }
 
+    public async Task UnfreezeAccountAsync(
+     Guid accountId,
+     string idempotencyKey,
+     CancellationToken cancellationToken
+ )
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new ArgumentException(
+                "Idempotency key is required."
+            );
+        }
+
+        string requestHash = accountId.ToString();
+        string scope = CreateIdempotencyScope(accountId);
+
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(
+                cancellationToken
+            );
+
+        try
+        {
+            IdempotencyRecord? existing =
+                await _dbContext.IdempotencyRecords
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        record =>
+                            record.Scope == scope &&
+                            record.Key == idempotencyKey &&
+                            record.Operation == IdempotencyOperations.Unfreeze,
+                        cancellationToken
+                    );
+
+            if (existing is not null)
+            {
+                if (existing.RequestHash != requestHash)
+                {
+                    throw new IdempotencyConflictException();
+                }
+
+                await transaction.CommitAsync(
+                    cancellationToken
+                );
+
+                return;
+            }
+
+            BankAccount? account =
+                await _dbContext.BankAccounts
+                    .FromSqlInterpolated(
+                        $"""
+                    SELECT *
+                    FROM "BankAccounts"
+                    WHERE "Id" = {accountId}
+                    FOR UPDATE
+                    """
+                    )
+                    .FirstOrDefaultAsync(
+                        cancellationToken
+                    );
+
+            if (account is null)
+            {
+                throw new NotFoundException(
+                    "Account not found."
+                );
+            }
+
+            account.Frozen = false;
+
+            IdempotencyRecord idempotencyRecord = new()
+            {
+                Id = Guid.NewGuid(),
+                Scope = scope,
+                Key = idempotencyKey,
+                RequestHash = requestHash,
+                Operation = IdempotencyOperations.Unfreeze,
+                ResponseStatusCode = 200,
+                ResponseBody = "Account unfrozen successfully.",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.IdempotencyRecords.Add(
+                idempotencyRecord
+            );
+
+            await _dbContext.SaveChangesAsync(
+                cancellationToken
+            );
+
+            await transaction.CommitAsync(
+                cancellationToken
+            );
+        }
+        catch (DbUpdateException exception)
+            when (
+                exception.InnerException is PostgresException postgresException &&
+                postgresException.SqlState == "23505"
+            )
+        {
+            await transaction.RollbackAsync(
+                cancellationToken
+            );
+
+            _dbContext.ChangeTracker.Clear();
+
+            IdempotencyRecord? existing =
+                await _dbContext.IdempotencyRecords
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        record =>
+                            record.Scope == scope &&
+                            record.Key == idempotencyKey &&
+                            record.Operation == IdempotencyOperations.Unfreeze,
+                        cancellationToken
+                    );
+
+            if (existing is null)
+            {
+                throw;
+            }
+
+            if (existing.RequestHash != requestHash)
+            {
+                throw new IdempotencyConflictException();
+            }
+
+            return;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(
+                cancellationToken
+            );
+
+            throw;
+        }
+    }
+
     private async Task<TransferResult> ExecuteTransferWithRetryAsync(
         Guid fromAccountId,
         Guid toAccountId,
