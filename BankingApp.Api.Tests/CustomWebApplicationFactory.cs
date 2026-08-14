@@ -1,10 +1,10 @@
+using System;
+using System.Linq;
 using BankingApp.Api.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
 
 namespace BankingApp.Api.Tests;
 

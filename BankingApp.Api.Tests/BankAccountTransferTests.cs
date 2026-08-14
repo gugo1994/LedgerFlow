@@ -1,16 +1,16 @@
-using BankingApp.Api.Constants;
-using BankingApp.Api.Data;
-using BankingApp.Api.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Xunit;
+using BankingApp.Api.Constants;
+using BankingApp.Api.Data;
+using BankingApp.Api.Entities;
+using BankingApp.Api.Tests.Helpers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BankingApp.Api.Tests;
 
@@ -94,22 +94,20 @@ public sealed class BankAccountTransferTests
 
         request1.Content =
             JsonContent.Create(requestBody);
-            IConfiguration configuration =
-    _factory.Services.GetRequiredService<IConfiguration>();
+        IConfiguration configuration =
+_factory.Services.GetRequiredService<IConfiguration>();
 
-string token = TestAuthHelper.CreateToken(
-    userId,
-    UserRoles.Customer,
-    configuration["Jwt:Secret"]!,
-    configuration["Jwt:Issuer"]!,
-    configuration["Jwt:Audience"]!
-);
+        string token = TestAuthHelper.CreateToken(
+            userId,
+            UserRoles.Customer,
+            configuration
+        );
 
-_client.DefaultRequestHeaders.Authorization =
-    new AuthenticationHeaderValue(
-        "Bearer",
-        token
-    );
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token
+            );
 
         HttpRequestMessage request2 = new(
             HttpMethod.Post,
@@ -220,22 +218,20 @@ _client.DefaultRequestHeaders.Authorization =
 
         string idempotencyKey =
             Guid.NewGuid().ToString();
-            IConfiguration configuration =
-    _factory.Services.GetRequiredService<IConfiguration>();
+        IConfiguration configuration =
+_factory.Services.GetRequiredService<IConfiguration>();
 
-string token = TestAuthHelper.CreateToken(
-    userId,
-    UserRoles.Customer,
-    configuration["Jwt:Secret"]!,
-    configuration["Jwt:Issuer"]!,
-    configuration["Jwt:Audience"]!
-);
+        string token = TestAuthHelper.CreateToken(
+            userId,
+            UserRoles.Customer,
+            configuration
+        );
 
-_client.DefaultRequestHeaders.Authorization =
-    new AuthenticationHeaderValue(
-        "Bearer",
-        token
-    );
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token
+            );
 
         HttpRequestMessage firstRequest = new(
             HttpMethod.Post,

@@ -6,6 +6,13 @@ root = true
 indent_style = space
 indent_size = 4
 
+# C# indentation
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = true
+csharp_indent_switch_labels = true
+
 # Line endings
 end_of_line = lf
 insert_final_newline = true
